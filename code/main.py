@@ -12,7 +12,7 @@ from pathlib import Path
 from claim_extractor import extract_claim
 from config import (
     CACHE_DIR, DATASET_DIR, INPUT_USD_PER_MILLION, LOG_LEVEL, MODEL, OUTPUT_COLUMNS,
-    OUTPUT_USD_PER_MILLION, REPO_ROOT,
+    OUTPUT_USD_PER_MILLION, REPO_ROOT, VISION_BACKEND,
 )
 from decision_engine import decide
 from evidence_validator import validate_evidence
@@ -43,7 +43,7 @@ def process_claims(
     totals = {
         "claims": len(claims), "images": 0, "model_calls": 0, "cache_hits": 0,
         "input_tokens": 0, "output_tokens": 0, "errors": 0,
-        "runtime_seconds": 0.0, "model": model,
+        "runtime_seconds": 0.0, "model": model, "vision_backend": VISION_BACKEND,
     }
     started = time.perf_counter()
 

@@ -43,7 +43,14 @@ RISK_FLAGS = [
 CLAIM_STATUSES = {"supported", "contradicted", "not_enough_information"}
 SEVERITIES = {"none", "low", "medium", "high", "unknown"}
 
-MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-5.5")
+VISION_BACKEND = os.getenv("VISION_BACKEND", "ollama").strip().lower()
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5vl:7b")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434").rstrip("/")
+OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-5.5")
+MODEL = os.getenv(
+    "VISION_MODEL",
+    OLLAMA_MODEL if VISION_BACKEND == "ollama" else OPENAI_VISION_MODEL,
+)
 IMAGE_DETAIL = os.getenv("OPENAI_IMAGE_DETAIL", "high")
 MAX_IMAGE_SIDE = int(os.getenv("MAX_IMAGE_SIDE", "1600"))
 MAX_RETRIES = int(os.getenv("OPENAI_MAX_RETRIES", "3"))

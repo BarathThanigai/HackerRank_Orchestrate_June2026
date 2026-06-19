@@ -9,8 +9,9 @@ and writes the exact required `output.csv` schema.
 
 1. `claim_extractor.py` extracts claimed parts and issues from English, Hindi,
    Hinglish, and Spanish conversations.
-2. `image_analyzer.py` sends each image independently to the OpenAI Responses API
-   and requires structured visual observations.
+2. `image_analyzer.py` sends each image independently to a pluggable vision
+   backend and requires structured visual observations. Ollama/Qwen2.5-VL is the
+   default free local backend; OpenAI remains available as an optional backend.
 3. `evidence_validator.py` applies `evidence_requirements.csv`.
 4. `risk_assessor.py` combines image-quality/authenticity flags with history flags.
    History never overrides visual evidence.
@@ -28,7 +29,6 @@ Python 3.11+ is recommended.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r code\requirements.txt
-$env:OPENAI_API_KEY="your-key"
 ```
 
 Unix/macOS:
@@ -37,10 +37,49 @@ Unix/macOS:
 python -m venv .venv
 source .venv/bin/activate
 pip install -r code/requirements.txt
-export OPENAI_API_KEY="your-key"
 ```
 
-All secrets come from environment variables. Never commit `.env` files.
+No paid API key is required for the default local setup.
+
+## Free local vision setup with Ollama
+
+Install Ollama:
+
+- Windows/macOS: download and install from <https://ollama.com/download>
+- Linux:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Start Ollama, then download the default vision model:
+
+```bash
+ollama pull qwen2.5vl:7b
+```
+
+If that tag is unavailable on your Ollama installation, use another local vision
+model such as `llava:7b` and set `OLLAMA_MODEL` to that model name.
+
+PowerShell configuration:
+
+```powershell
+$env:VISION_BACKEND="ollama"
+$env:OLLAMA_MODEL="qwen2.5vl:7b"
+$env:OLLAMA_URL="http://localhost:11434"
+```
+
+Unix/macOS configuration:
+
+```bash
+export VISION_BACKEND=ollama
+export OLLAMA_MODEL=qwen2.5vl:7b
+export OLLAMA_URL=http://localhost:11434
+```
+
+Once the model is downloaded, image analysis and `output.csv` generation run
+locally without paid API usage. Environment variables can also be placed in a
+local `.env` file, but never commit secrets.
 
 ## Generate predictions
 
@@ -55,11 +94,11 @@ Useful options:
 
 ```bash
 python code/main.py --input dataset/claims.csv --output output.csv
-python code/main.py --model gpt-5.5 --refresh-cache --verbose
+python code/main.py --model qwen2.5vl:7b --refresh-cache --verbose
 ```
 
 Responses are cached under `code/.cache/`. The cache key includes image bytes,
-the extracted claim, model, and prompt version.
+the extracted claim, backend, model, and prompt version.
 
 ## Evaluate
 
@@ -87,4 +126,21 @@ Expected labels are loaded only after predictions have been generated.
 ## Configuration
 
 See `.env.example`. Defaults are centralized in `config.py`. Cost figures are
-estimates using configurable assumptions.
+zero for the default Ollama backend after the model has been downloaded.
+
+Common settings:
+
+```text
+VISION_BACKEND=ollama
+OLLAMA_MODEL=qwen2.5vl:7b
+OLLAMA_URL=http://localhost:11434
+```
+
+Optional OpenAI backend:
+
+```bash
+pip install openai
+export VISION_BACKEND=openai
+export OPENAI_API_KEY=...
+export OPENAI_VISION_MODEL=gpt-5.5
+```

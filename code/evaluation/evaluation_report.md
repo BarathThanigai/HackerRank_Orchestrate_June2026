@@ -1,6 +1,6 @@
 # Evaluation Report
 
-Generated: 2026-06-19T07:53:34.043333+00:00
+Generated: 2026-06-19T08:27:13.892299+00:00
 
 ## Final strategy
 
@@ -9,11 +9,12 @@ structured schema. Deterministic Python modules then apply evidence requirements
 history-only risk flags, and final decisions. Images remain the primary source of
 truth; user history never changes a visual decision.
 
-> **Environment note:** this measured run had no usable vision API credential.
+> **Environment note:** this measured run had no usable vision backend.
 > Every model call followed the conservative failure path. The metrics below
 > therefore validate schema, orchestration, claim extraction, and error handling;
 > they are not representative of the configured vision strategy. Re-run with
-> `OPENAI_API_KEY` set before submission to obtain meaningful visual metrics.
+> Ollama running and the configured model downloaded, or set
+> `VISION_BACKEND=openai` with `OPENAI_API_KEY`, before submission.
 
 
 ## Sample metrics
@@ -59,12 +60,13 @@ Supporting-image set F1: **10.0%**
 - Input tokens: 0
 - Output tokens: 0
 - Approximate cost: **$0.0000**
-- Runtime: 1.68 seconds
-- Model: `gpt-5.5`
+- Runtime: 30.68 seconds
+- Vision backend: `ollama`
+- Model: `qwen2.5vl:7b`
 
-Pricing assumptions are configurable. Images are resized before upload and cached
-by bytes, claim, model, and prompt version. SDK retries are bounded; sequential
-processing stays conservative for RPM/TPM, while bounded concurrency can be added.
+For the default Ollama backend, cost is zero after the local model is downloaded.
+Images are resized before analysis and cached by bytes, claim, backend, model,
+and prompt version. Sequential processing stays conservative and reproducible.
 
 ## Failure behavior
 

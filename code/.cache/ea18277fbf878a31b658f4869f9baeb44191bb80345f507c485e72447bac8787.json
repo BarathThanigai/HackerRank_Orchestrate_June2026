@@ -1,0 +1,21 @@
+{
+  "image_id": "img_1",
+  "visible_object": "car",
+  "visible_part": "front_bumper",
+  "visible_damage": "dent",
+  "damage_present": true,
+  "claimed_part_visible": true,
+  "claimed_condition_visible": true,
+  "severity": "medium",
+  "quality_issues": [],
+  "confidence": 0.83,
+  "description": "A dent is visible on the front bumper.",
+  "original_photo_likely": true,
+  "text_instruction_present": false,
+  "technical_valid": true,
+  "error": null,
+  "input_tokens": 10,
+  "output_tokens": 20,
+  "latency_seconds": 0.07769499999994878,
+  "cache_hit": false
+}
