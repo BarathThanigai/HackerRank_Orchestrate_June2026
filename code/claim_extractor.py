@@ -56,24 +56,31 @@ PART_PATTERNS: dict[str, list[tuple[str, tuple[str, ...]]]] = {
 ISSUE_PATTERNS: list[tuple[str, tuple[str, ...]]] = [
     ("glass_shatter", ("shattered", "shatter", "smashed glass", "screen shattered",
                        "windshield shatter")),
-    ("torn_packaging", ("torn open", "torn-open", "torn packaging", "seal is torn",
+    ("torn_packaging", ("torn open", "torn-open", "torn packaging", "opened",
+                        "open flap", "seal broken", "seal is torn",
                         "seal torn", "open seal", "opened seal", "broken seal",
                         "tape broken", "package opened", "box opened", "opened box",
                         "phati", "phati hui", "fata", "abierto", "rasgado",
                         "opened jaisa", "open jaisa")),
     ("crushed_packaging", ("crushed", "crush", "corner crushed", "crushed corner",
+                           "dented box", "box dented",
                            "dab gaya", "daba hua", "aplastad", "aplastado")),
-    ("water_damage", ("water damage", "liquid damage", "wet box", "got wet",
-                      "coffee", "water damaged", "mojado", "agua")),
-    ("missing_part", ("missing key", "key missing", "keycap missing", "missing keycap",
+    ("water_damage", ("water damage", "liquid damage", "wet box", "got wet", "wet",
+                      "soaked", "liquid", "coffee spill", "coffee", "water damaged",
+                      "mojado", "empapado", "agua")),
+    ("missing_part", ("missing", "absent", "missing key", "key missing",
+                      "keycap came off", "keys came off", "keycap missing", "missing keycap",
                       "missing keys", "key is missing", "keys missing", "missing part",
                       "missing or broken", "faltan", "missing")),
-    ("broken_part", ("broken", "broke", "breakage", "toot gaya", "toota", "roto")),
+    ("broken_part", ("broken", "broke", "breakage", "snapped", "hole", "detached",
+                     "not sitting properly", "not sitting", "toot gaya", "toota", "roto")),
     ("dent", ("hail dents", "dented", "dent", "dab gaya", "abollad", "hundido")),
     ("scratch", ("scratched", "scratch", "scrape", "scuff", "rayon")),
-    ("crack", ("cracked", "crack", "fracture", "fisura", "rajadura")),
-    ("stain", ("oil stain", "stained", "stain", "oily mark", "wet-looking stain",
-               "mancha", "daag")),
+    ("crack", ("cracked", "crack line", "crack", "broken screen", "display glass",
+               "fracture", "fisura", "rajadura")),
+    ("stain", ("oil stain", "stained", "stain", "oily mark", "dark mark",
+               "coffee mark", "cosmetic stain", "wet-looking stain", "mancha", "daag")),
+    ("none", ("no visible damage", "no damage visible", "no damage", "undamaged")),
 ]
 
 
@@ -142,6 +149,11 @@ def extract_claim(user_claim: str, claim_object: str) -> ClaimIntent:
         text, ISSUE_PATTERNS
     )
     issues = [issue for issue in issues if issue not in negated_issues]
+    if claim_object != "package":
+        issues = [
+            issue for issue in issues
+            if issue not in {"torn_packaging", "crushed_packaging"}
+        ]
     if claim_object == "package" and "crushed_packaging" in issues:
         issues = [issue for issue in issues if issue != "dent"]
     explicit_water_damage = bool(re.search(
@@ -154,6 +166,10 @@ def extract_claim(user_claim: str, claim_object: str) -> ClaimIntent:
         issues = ["stain", *[issue for issue in issues if issue not in {"stain", "water_damage"}]]
     elif explicit_water_damage and "water_damage" in issues:
         issues = ["water_damage", *[issue for issue in issues if issue != "water_damage"]]
+    if (claim_object == "laptop" and parts and parts[0] == "screen"
+            and re.search(r"\b(?:broken screen|display glass)\b", final_text)
+            and "glass_shatter" not in issues):
+        issues = ["crack", *[issue for issue in issues if issue not in {"crack", "broken_part"}]]
     if not issues and claim_object == "car" and parts and parts[0] == "side_mirror":
         if re.search(r"\b(?:damaged|loose|not sitting|hanging|misaligned)\b", text):
             issues = ["broken_part"]
@@ -166,7 +182,7 @@ def extract_claim(user_claim: str, claim_object: str) -> ClaimIntent:
         "severe": (
             text,
             r"\b(?:deep (?:scratch|crack|dent)|severe (?:damage|scratch|crack|dent)|"
-            r"large hole|badly crushed|major damage|pretty bad)\b",
+            r"large hole|badly crushed|severe front damage|major damage|pretty bad)\b",
         ),
         "minor": (final_text, r"\b(?:small|minor|light|slight|pequeno|pequena)\b"),
         "left": (final_text, r"\b(?:left|izquierd[oa])\b"),
@@ -174,9 +190,9 @@ def extract_claim(user_claim: str, claim_object: str) -> ClaimIntent:
         "unreadable": (text, r"\b(?:unreadable|illegible)\b"),
         "instruction_attack": (
             text,
-            r"\b(?:ignore (?:all |any |previous )?instructions|approve (?:this |the )?"
-            r"(?:claim )?immediately|mark this row|mark (?:this |it )?supported|"
-            r"skip manual review|follow (?:this |the )?note|keep reopening tickets)\b",
+            r"\b(?:ignore (?:all |any |previous )?instructions|approve|mark this row|"
+            r"mark (?:this |it )?supported|skip (?:manual )?review|"
+            r"follow (?:this |the )?note|keep reopening(?: tickets)?|escalate publicly)\b",
         ),
     }
     for qualifier, (source, pattern) in qualifier_sources.items():

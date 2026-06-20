@@ -397,10 +397,21 @@ class ImageAnalyzer:
             severity = "unknown"
         else:
             damage_present = True
-            if issue == "glass_shatter" or "severe" in intent.qualifiers:
+            missing_with_torn_package = (
+                issue == "missing_part" and "torn_packaging" in intent.claimed_issues
+            )
+            if (issue == "glass_shatter" or "severe" in intent.qualifiers
+                    or missing_with_torn_package):
                 severity = "high"
             elif issue in {"scratch", "stain"}:
-                severity = "low"
+                liquid_caused_stain = (
+                    issue == "stain"
+                    and bool(re.search(
+                        r"\b(?:water|liquid|coffee spill|spilled coffee|soaked|wet)\b",
+                        intent.source_text,
+                    ))
+                )
+                severity = "medium" if liquid_caused_stain else "low"
             else:
                 severity = "medium"
 

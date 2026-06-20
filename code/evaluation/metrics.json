@@ -2,16 +2,16 @@
   "rows": 20,
   "field_accuracy": {
     "evidence_standard_met": 0.85,
-    "risk_flags": 0.55,
+    "risk_flags": 0.6,
     "issue_type": 0.65,
     "object_part": 0.9,
     "claim_status": 0.7,
     "supporting_image_ids": 0.7,
     "valid_image": 0.95,
-    "severity": 0.55
+    "severity": 0.6
   },
-  "full_structured_row_accuracy": 0.4,
-  "risk_flags_set_f1": 0.7362,
+  "full_structured_row_accuracy": 0.5,
+  "risk_flags_set_f1": 0.7433,
   "supporting_image_ids_set_f1": 0.7333,
   "per_object_claim_status_accuracy": {
     "car": 0.625,
@@ -51,8 +51,7 @@
       "low -> medium": 1,
       "low -> unknown": 1,
       "medium -> high": 1,
-      "medium -> low": 1,
-      "medium -> medium": 9,
+      "medium -> medium": 10,
       "none -> medium": 1,
       "none -> unknown": 1,
       "unknown -> medium": 1,

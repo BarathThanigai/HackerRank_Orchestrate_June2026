@@ -24,7 +24,11 @@ def assess_risk(
         if obs.text_instruction_present:
             flags.add("text_instruction_present")
     if successful and not any(o.claimed_part_visible for o in successful):
-        flags.update({"wrong_angle", "damage_not_visible"})
+        if (intent.claim_object == "package"
+                and intent.primary_part in {"contents", "item"}):
+            flags.add("damage_not_visible")
+        else:
+            flags.update({"wrong_angle", "damage_not_visible"})
     elif successful and any(o.claimed_part_visible and o.damage_present is False for o in successful):
         flags.add("damage_not_visible")
     visible_damage = {

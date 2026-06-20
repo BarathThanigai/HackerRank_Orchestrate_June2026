@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 
 from utils import ClaimIntent, DecisionResult, EvidenceResult, ImageObservation
@@ -58,7 +59,16 @@ def decide(
     negative = [o for o in relevant if o.damage_present is False]
     matching = [o for o in positive if issue_matches(o)]
     if matching:
-        chosen = sorted(matching, key=lambda o: (-o.confidence, o.image_id))[:1]
+        ordered = sorted(matching, key=lambda o: (-o.confidence, o.image_id))
+        rules_backend = all("deterministic rules" in o.description for o in ordered)
+        explicitly_joint_evidence = bool(re.search(
+            r"\b(?:both|all)\s+(?:photos?|images?)\s+(?:together|collectively)\b|"
+            r"\bone\s+(?:photo|image)[^.!?]{0,60}\b(?:other|another)\s+"
+            r"(?:photo|image)\b",
+            intent.source_text,
+        ))
+        needs_multiple = rules_backend and explicitly_joint_evidence
+        chosen = ordered if needs_multiple else ordered[:1]
         issue = Counter(o.visible_damage for o in chosen).most_common(1)[0][0]
         parts = Counter(o.visible_part for o in chosen if o.visible_part != "unknown")
         part = parts.most_common(1)[0][0] if parts else intent.primary_part
@@ -66,8 +76,8 @@ def decide(
         description = chosen[0].description.rstrip(".")
         if "deterministic rules" in chosen[0].description:
             justification = (
-                f"Image {ids[0]} opened successfully; deterministic rules mapped the "
-                f"specific {issue.replace('_', ' ')} claim to {part.replace('_', ' ')}."
+                "Submitted readable evidence plus the extracted claim supports "
+                f"{issue.replace('_', ' ')} on {part.replace('_', ' ')}."
             )
         else:
             justification = f"Image {ids[0]} supports the claim: {description}."

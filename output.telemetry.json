@@ -6,7 +6,7 @@
   "input_tokens": 0,
   "output_tokens": 0,
   "errors": 0,
-  "runtime_seconds": 12.727,
+  "runtime_seconds": 10.079,
   "model": "deterministic-rules-v1",
   "vision_backend": "rules",
   "estimated_cost_usd": 0.0
